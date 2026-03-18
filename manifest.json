@@ -5,5 +5,5 @@
   "minAppVersion": "0.15.0",
   "description": "Track PlayStation platinum trophies with a dedicated sidebar panel, progress bars, and import support.",
   "author": "gw-sauter",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }

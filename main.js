@@ -86,7 +86,6 @@ var PsnService = class {
     });
   }
   async authenticate(npssoToken) {
-    console.log("[AT] authenticate called");
     if (this.accessToken && Date.now() < this.authExpiresAt) return;
     const params = new URLSearchParams({
       access_type: "offline",
@@ -97,20 +96,16 @@ var PsnService = class {
     });
     const authorizeUrl = `${AUTH_BASE_URL}/authorize?${params}`;
     let code = null;
-    console.log("[AT] About to request (no-redirect):", authorizeUrl.substring(0, 80) + "...");
     try {
       const resp = await this.httpGetNoRedirect(authorizeUrl, {
         Cookie: `npsso=${npssoToken}`
       });
-      console.log("[AT] Auth response status:", resp.statusCode);
-      console.log("[AT] Auth response location:", resp.headers.location);
       const location = resp.headers.location;
       if (typeof location === "string" && location.includes("code=")) {
         const match = location.match(/code=([^&]+)/);
         if (match) code = match[1];
       }
     } catch (e) {
-      console.log("[AT] Auth request error:", e == null ? void 0 : e.message);
     }
     if (!code) {
       throw new Error(
@@ -141,7 +136,6 @@ var PsnService = class {
     this.authExpiresAt = Date.now() + ((tokenData.expires_in || 3600) - 60) * 1e3;
   }
   async testConnection(npssoToken) {
-    console.log("[AT] testConnection called, token length:", npssoToken == null ? void 0 : npssoToken.length);
     this.accessToken = null;
     this.authExpiresAt = 0;
     await this.authenticate(npssoToken);
@@ -1293,6 +1287,14 @@ var TrackerView = class extends import_obsidian11.ItemView {
       psnBtn.prepend(psnBtn.querySelector(".svg-icon"));
       psnBtn.addEventListener("click", () => this.openPsnImportModal());
     }
+    const popoutBtn = toolbar.createEl("button", {
+      cls: "at-btn",
+      attr: { "aria-label": "Open in popout window" }
+    });
+    (0, import_obsidian11.setIcon)(popoutBtn, "external-link");
+    popoutBtn.addEventListener("click", () => {
+      this.plugin.activatePopoutView();
+    });
     const content = container.createDiv({ cls: "at-content" });
     if (this.expandedGame) {
       const game = this.games.find(
@@ -1410,6 +1412,11 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
       }
     });
     this.addCommand({
+      id: "open-achievement-tracker-popout",
+      name: "Open Achievement Tracker in popout window",
+      callback: () => this.activatePopoutView()
+    });
+    this.addCommand({
       id: "import-from-psn",
       name: "Import trophies from PlayStation Network",
       callback: () => {
@@ -1467,6 +1474,14 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
     if (leaf) {
       workspace.revealLeaf(leaf);
     }
+  }
+  async activatePopoutView() {
+    const leaf = this.app.workspace.openPopoutLeaf();
+    await leaf.setViewState({
+      type: VIEW_TYPE_TRACKER,
+      active: true
+    });
+    this.app.workspace.revealLeaf(leaf);
   }
   refreshTrackerView() {
     const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TRACKER);

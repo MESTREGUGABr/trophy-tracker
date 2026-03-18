@@ -41,6 +41,12 @@ export default class AchievementTrackerPlugin extends Plugin {
 		});
 
 		this.addCommand({
+			id: "open-achievement-tracker-popout",
+			name: "Open Achievement Tracker in popout window",
+			callback: () => this.activatePopoutView(),
+		});
+
+		this.addCommand({
 			id: "import-from-psn",
 			name: "Import trophies from PlayStation Network",
 			callback: () => {
@@ -108,6 +114,15 @@ export default class AchievementTrackerPlugin extends Plugin {
 		if (leaf) {
 			workspace.revealLeaf(leaf);
 		}
+	}
+
+	async activatePopoutView(): Promise<void> {
+		const leaf = this.app.workspace.openPopoutLeaf();
+		await leaf.setViewState({
+			type: VIEW_TYPE_TRACKER,
+			active: true,
+		});
+		this.app.workspace.revealLeaf(leaf);
 	}
 
 	refreshTrackerView(): void {

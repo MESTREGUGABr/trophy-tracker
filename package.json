@@ -15,8 +15,5 @@
     "esbuild": "^0.25.0",
     "obsidian": "latest",
     "typescript": "^5.8.0"
-  },
-  "dependencies": {
-    "psn-api": "^2.18.0"
   }
 }

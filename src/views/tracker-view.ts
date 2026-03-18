@@ -83,6 +83,15 @@ export class TrackerView extends ItemView {
 			psnBtn.addEventListener("click", () => this.openPsnImportModal());
 		}
 
+		const popoutBtn = toolbar.createEl("button", {
+			cls: "at-btn",
+			attr: { "aria-label": "Open in popout window" },
+		});
+		setIcon(popoutBtn, "external-link");
+		popoutBtn.addEventListener("click", () => {
+			this.plugin.activatePopoutView();
+		});
+
 		// Content area
 		const content = container.createDiv({ cls: "at-content" });
 

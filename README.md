@@ -8,6 +8,7 @@ Plugin para [Obsidian](https://obsidian.md) que permite rastrear troféus de jog
 
 - **Importação automática da PSN** — Conecte sua conta PlayStation Network e importe todos os seus jogos com troféus, progresso e datas de conquista
 - **Painel lateral dedicado** — Visualize todos os seus jogos e troféus em um painel organizado na sidebar do Obsidian
+- **Janela flutuante (Popout)** — Abra o tracker em uma janela independente para acompanhar seus troféus lado a lado com o Obsidian
 - **Barras de progresso** — Acompanhe visualmente o progresso de conclusão de cada jogo
 - **Gerenciamento manual** — Adicione jogos e troféus manualmente, edite, marque como concluído ou remova
 - **Importação por texto** — Cole uma lista de troféus formatada e o plugin cria a nota automaticamente
@@ -76,6 +77,7 @@ Para importar troféus automaticamente da PlayStation Network, você precisa de 
 
 - Clique no ícone de **troféu** na ribbon (barra lateral esquerda) do Obsidian
 - Ou use o comando `Open Achievement Tracker` pela paleta de comandos (`Ctrl/Cmd + P`)
+- Para abrir em **janela flutuante**, use o comando `Open Achievement Tracker in popout window` ou clique no botão de popout (ícone de link externo) na toolbar do painel
 
 ### Importar jogos da PSN
 
@@ -166,6 +168,7 @@ trophies:
 | Comando | Descrição |
 |---|---|
 | `Open Achievement Tracker` | Abre o painel lateral do tracker |
+| `Open Achievement Tracker in popout window` | Abre o tracker em uma janela flutuante independente |
 | `Import trophies from text` | Abre o modal de importação manual por texto |
 | `Import trophies from PlayStation Network` | Abre o modal de importação da PSN |
 
@@ -187,7 +190,7 @@ Todos os dados ficam no seu vault Obsidian como arquivos markdown na pasta confi
 
 ### O plugin funciona no mobile?
 
-O plugin utiliza módulos nativos do Node.js para autenticação com a PSN, portanto a importação da PSN funciona apenas no **desktop**. As demais funcionalidades (gerenciamento manual, visualização) funcionam normalmente no mobile.
+Este plugin é **desktop only**. Ele utiliza módulos nativos do Node.js para autenticação com a PSN e a funcionalidade de janela flutuante (popout) também depende do ambiente desktop (Electron).
 
 ---
 

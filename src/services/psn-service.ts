@@ -47,7 +47,6 @@ export class PsnService {
 	}
 
 	async authenticate(npssoToken: string): Promise<void> {
-		console.log("[AT] authenticate called");
 		if (this.accessToken && Date.now() < this.authExpiresAt) return;
 
 		// Step 1: Exchange NPSSO for access code
@@ -66,14 +65,10 @@ export class PsnService {
 		const authorizeUrl = `${AUTH_BASE_URL}/authorize?${params}`;
 		let code: string | null = null;
 
-		console.log("[AT] About to request (no-redirect):", authorizeUrl.substring(0, 80) + "...");
 		try {
 			const resp = await this.httpGetNoRedirect(authorizeUrl, {
 				Cookie: `npsso=${npssoToken}`,
 			});
-
-			console.log("[AT] Auth response status:", resp.statusCode);
-			console.log("[AT] Auth response location:", resp.headers.location);
 
 			// Extract code from Location header (302 redirect)
 			const location = resp.headers.location;
@@ -81,8 +76,8 @@ export class PsnService {
 				const match = location.match(/code=([^&]+)/);
 				if (match) code = match[1];
 			}
-		} catch (e: any) {
-			console.log("[AT] Auth request error:", e?.message);
+		} catch {
+			// Network error during auth request
 		}
 
 		if (!code) {
@@ -125,7 +120,6 @@ export class PsnService {
 	}
 
 	async testConnection(npssoToken: string): Promise<boolean> {
-		console.log("[AT] testConnection called, token length:", npssoToken?.length);
 		this.accessToken = null;
 		this.authExpiresAt = 0;
 		await this.authenticate(npssoToken);
