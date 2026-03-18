@@ -1,0 +1,22 @@
+{
+  "name": "obsidian-achievement-tracker",
+  "version": "1.0.0",
+  "description": "Obsidian plugin for tracking PlayStation platinum trophies",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "keywords": [],
+  "author": "gw-sauter",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.0",
+    "obsidian": "latest",
+    "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "psn-api": "^2.18.0"
+  }
+}
