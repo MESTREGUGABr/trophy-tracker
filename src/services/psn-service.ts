@@ -1,4 +1,5 @@
-import { requestUrl, RequestUrlResponse } from "obsidian";
+import { requestUrl } from "obsidian";
+import * as https from "https";
 import type {
 	GameFrontmatter,
 	GameStatus,
@@ -14,6 +15,37 @@ export class PsnService {
 	private accessToken: string | null = null;
 	private authExpiresAt = 0;
 
+	/**
+	 * Make an HTTPS GET request without following redirects.
+	 * Returns the Location header from 3xx responses.
+	 */
+	private httpGetNoRedirect(
+		url: string,
+		headers: Record<string, string>
+	): Promise<{ statusCode: number; headers: Record<string, string | string[] | undefined> }> {
+		return new Promise((resolve, reject) => {
+			const parsedUrl = new URL(url);
+			const req = https.request(
+				{
+					hostname: parsedUrl.hostname,
+					path: parsedUrl.pathname + parsedUrl.search,
+					method: "GET",
+					headers,
+				},
+				(res) => {
+					// Consume body to free resources
+					res.resume();
+					resolve({
+						statusCode: res.statusCode || 0,
+						headers: res.headers as Record<string, string | string[] | undefined>,
+					});
+				}
+			);
+			req.on("error", reject);
+			req.end();
+		});
+	}
+
 	async authenticate(npssoToken: string): Promise<void> {
 		console.log("[AT] authenticate called");
 		if (this.accessToken && Date.now() < this.authExpiresAt) return;
@@ -21,8 +53,8 @@ export class PsnService {
 		// Step 1: Exchange NPSSO for access code
 		// Sony's authorize endpoint returns a 302 redirect to a non-HTTP URL:
 		//   com.scee.psxandroid.scecompcall://redirect?code=v3.xxxxx
-		// requestUrl will try to follow that redirect and fail.
-		// We catch the error and extract the code from it.
+		// We use Node's https module directly to avoid following the redirect,
+		// so we can capture the code from the Location header.
 		const params = new URLSearchParams({
 			access_type: "offline",
 			client_id: "09515159-7237-4370-9b40-3806e67c0891",
@@ -34,83 +66,23 @@ export class PsnService {
 		const authorizeUrl = `${AUTH_BASE_URL}/authorize?${params}`;
 		let code: string | null = null;
 
-		console.log("[AT] About to call requestUrl with:", authorizeUrl.substring(0, 80) + "...");
+		console.log("[AT] About to request (no-redirect):", authorizeUrl.substring(0, 80) + "...");
 		try {
-			const resp = await requestUrl({
-				url: authorizeUrl,
-				headers: {
-					Cookie: `npsso=${npssoToken}`,
-				},
-				throw: false,
+			const resp = await this.httpGetNoRedirect(authorizeUrl, {
+				Cookie: `npsso=${npssoToken}`,
 			});
 
-			// Debug: log the full response to understand what we get back
-			console.log("[AT] Auth response status:", resp.status);
-			console.log("[AT] Auth response headers:", JSON.stringify(resp.headers));
-			console.log("[AT] Auth response url:", (resp as any).url);
+			console.log("[AT] Auth response status:", resp.statusCode);
+			console.log("[AT] Auth response location:", resp.headers.location);
 
-			// Check for Location header (302 redirect)
-			for (const [key, value] of Object.entries(resp.headers || {})) {
-				if (key.toLowerCase() === "location" && typeof value === "string" && value.includes("code=")) {
-					const match = value.match(/code=([^&]+)/);
-					if (match) code = match[1];
-				}
-			}
-
-			// Check response URL
-			if (!code) {
-				const respUrl = (resp as any).url || "";
-				if (respUrl.includes("code=")) {
-					const match = respUrl.match(/code=([^&]+)/);
-					if (match) code = match[1];
-				}
-			}
-
-			// Check response body for code
-			if (!code && resp.text) {
-				const match = resp.text.match(/code=([^&\s"'<>]+)/);
+			// Extract code from Location header (302 redirect)
+			const location = resp.headers.location;
+			if (typeof location === "string" && location.includes("code=")) {
+				const match = location.match(/code=([^&]+)/);
 				if (match) code = match[1];
 			}
 		} catch (e: any) {
-			// Debug: log the full error object
-			console.log("[AT] Auth error type:", typeof e);
-			console.log("[AT] Auth error message:", e?.message);
-			console.log("[AT] Auth error url:", e?.url);
-			console.log("[AT] Auth error keys:", e ? Object.keys(e) : "null");
-			try {
-				console.log("[AT] Auth error JSON:", JSON.stringify(e, null, 2));
-			} catch {
-				console.log("[AT] Auth error toString:", String(e));
-			}
-
-			// requestUrl throws when following redirect to non-HTTP URL
-			// Try to extract code from error properties
-			const sources = [
-				e?.url,
-				e?.message,
-				e?.headers?.location,
-				e?.headers?.Location,
-			];
-			for (const src of sources) {
-				if (typeof src === "string" && src.includes("code=")) {
-					const match = src.match(/code=([^&\s"'}\]]+)/);
-					if (match) {
-						code = match[1];
-						break;
-					}
-				}
-			}
-
-			// Last resort: stringify everything
-			if (!code) {
-				try {
-					const fullStr = JSON.stringify(e);
-					const match = fullStr.match(/code=([^&\s"'}\]]+)/);
-					if (match) code = match[1];
-				} catch {
-					// ignore
-				}
-			}
+			console.log("[AT] Auth request error:", e?.message);
 		}
 
 		if (!code) {
