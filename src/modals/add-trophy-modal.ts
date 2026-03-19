@@ -14,7 +14,7 @@ export class AddTrophyModal extends Modal {
 
 	onOpen(): void {
 		const { contentEl } = this;
-		contentEl.createEl("h2", { text: "Add Trophy" });
+		contentEl.createEl("h2", { text: "Add trophy" });
 
 		new Setting(contentEl).setName("Trophy name").addText((text) =>
 			text.setPlaceholder("e.g. The Promise").onChange((value) => {
@@ -38,7 +38,7 @@ export class AddTrophyModal extends Modal {
 
 		new Setting(contentEl).addButton((btn) =>
 			btn
-				.setButtonText("Add Trophy")
+				.setButtonText("Add trophy")
 				.setCta()
 				.onClick(() => {
 					if (!this.trophyName.trim()) return;

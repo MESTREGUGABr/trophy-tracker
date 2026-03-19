@@ -17,7 +17,7 @@ export class AddGameModal extends Modal {
 
 	onOpen(): void {
 		const { contentEl } = this;
-		contentEl.createEl("h2", { text: "Add New Game" });
+		contentEl.createEl("h2", { text: "Add new game" });
 
 		new Setting(contentEl).setName("Game name").addText((text) =>
 			text.setPlaceholder("e.g. God of War Ragnarök").onChange((value) => {
@@ -43,7 +43,7 @@ export class AddGameModal extends Modal {
 			dropdown
 				.addOptions({
 					backlog: "Backlog",
-					"in-progress": "In Progress",
+					"in-progress": "In progress",
 					completed: "Completed",
 				})
 				.setValue(this.status)
@@ -54,7 +54,7 @@ export class AddGameModal extends Modal {
 
 		new Setting(contentEl).addButton((btn) =>
 			btn
-				.setButtonText("Add Game")
+				.setButtonText("Add game")
 				.setCta()
 				.onClick(() => {
 					if (!this.gameName.trim()) {

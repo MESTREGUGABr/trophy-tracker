@@ -11,6 +11,42 @@ import type {
 const AUTH_BASE_URL = "https://ca.account.sony.com/api/authz/v3/oauth";
 const TROPHY_BASE_URL = "https://m.np.playstation.com/api/trophy";
 
+interface TokenResponse {
+	access_token?: string;
+	expires_in?: number;
+	error_description?: string;
+	error?: string;
+}
+
+interface TrophyTitleResponse {
+	trophyTitles: PsnTrophyTitle[];
+	totalItemCount: number;
+	nextOffset?: number;
+}
+
+interface PsnTrophyTitle {
+	npCommunicationId: string;
+	npServiceName: string;
+	trophyTitleName: string;
+	trophyTitlePlatform: string;
+	trophyTitleIconUrl: string;
+	progress: number;
+	definedTrophies: { bronze: number; silver: number; gold: number; platinum: number };
+	earnedTrophies: { bronze: number; silver: number; gold: number; platinum: number };
+}
+
+interface PsnTrophyDefinition {
+	trophyId: number;
+	trophyName?: string;
+	trophyType: string;
+}
+
+interface PsnEarnedTrophy {
+	trophyId: number;
+	earned: boolean;
+	earnedDateTime?: string | null;
+}
+
 export class PsnService {
 	private accessToken: string | null = null;
 	private authExpiresAt = 0;
@@ -104,7 +140,7 @@ export class PsnService {
 			}).toString(),
 		});
 
-		const tokenData = tokenResp.json;
+		const tokenData = tokenResp.json as TokenResponse;
 		if (!tokenData.access_token) {
 			throw new Error(
 				"Failed to obtain PSN access token. " +
@@ -151,16 +187,12 @@ export class PsnService {
 				offset: String(offset),
 			});
 			const url = `${TROPHY_BASE_URL}/v1/users/me/trophyTitles?${params}`;
-			const response = await this.apiCall<{
-				trophyTitles: any[];
-				totalItemCount: number;
-				nextOffset?: number;
-			}>(url);
+			const response = await this.apiCall<TrophyTitleResponse>(url);
 
 			for (const title of response.trophyTitles) {
 				allGames.push({
 					npCommunicationId: title.npCommunicationId,
-					npServiceName: title.npServiceName,
+					npServiceName: title.npServiceName as "trophy" | "trophy2",
 					trophyTitleName: title.trophyTitleName,
 					trophyTitlePlatform: title.trophyTitlePlatform,
 					trophyTitleIconUrl: title.trophyTitleIconUrl,
@@ -199,8 +231,8 @@ export class PsnService {
 		const earnedUrl = `${TROPHY_BASE_URL}/v1/users/me/npCommunicationIds/${game.npCommunicationId}/trophyGroups/all/trophies${serviceParam}`;
 
 		const [definitionsResp, earnedResp] = await Promise.all([
-			this.apiCall<{ trophies: any[] }>(definitionsUrl),
-			this.apiCall<{ trophies: any[] }>(earnedUrl),
+			this.apiCall<{ trophies: PsnTrophyDefinition[] }>(definitionsUrl),
+			this.apiCall<{ trophies: PsnEarnedTrophy[] }>(earnedUrl),
 		]);
 
 		const earnedMap = new Map<
@@ -215,7 +247,7 @@ export class PsnService {
 		}
 
 		const trophies: Trophy[] = definitionsResp.trophies.map(
-			(def: any) => {
+			(def) => {
 				const earned = earnedMap.get(def.trophyId);
 				const isEarned = earned?.earned ?? false;
 				let completedDate: string | null = null;

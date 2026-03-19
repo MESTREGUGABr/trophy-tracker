@@ -14,7 +14,9 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Achievement Tracker Settings" });
+		new Setting(containerEl)
+			.setName("Achievement tracker settings")
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName("Games folder")
@@ -50,19 +52,22 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 			);
 
 		// PSN Section
-		containerEl.createEl("h2", { text: "PlayStation Network" });
+		new Setting(containerEl)
+			.setName("PlayStation Network")
+			.setHeading();
 
 		const instructions = containerEl.createDiv({ cls: "at-psn-instructions" });
 		instructions.createEl("p", { text: "To import trophies from PSN, you need an NPSSO token:" });
 		const ol = instructions.createEl("ol");
 		ol.createEl("li", { text: "Sign in at store.playstation.com" });
-		ol.createEl("li").innerHTML =
-			'Visit <code>https://ca.account.sony.com/api/v1/ssocookie</code>';
+		const step2 = ol.createEl("li");
+		step2.appendText("Visit ");
+		step2.createEl("code", { text: "https://ca.account.sony.com/api/v1/ssocookie" });
 		ol.createEl("li", { text: 'Copy the "npsso" value from the JSON response' });
 		ol.createEl("li", { text: "Paste it in the field below" });
 
 		new Setting(containerEl)
-			.setName("NPSSO Token")
+			.setName("NPSSO token")
 			.setDesc("Your PlayStation Network authentication token.")
 			.addText((text) =>
 				text
@@ -78,7 +83,7 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 			.setName("Test connection")
 			.setDesc("Verify that your NPSSO token is valid.")
 			.addButton((btn) =>
-				btn.setButtonText("Test Connection").onClick(async () => {
+				btn.setButtonText("Test connection").onClick(async () => {
 					const token = this.plugin.settings.psnNpssoToken;
 					if (!token) {
 						new Notice("Please enter an NPSSO token first.");
@@ -90,12 +95,13 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 						const psnService = new PsnService();
 						await psnService.testConnection(token);
 						new Notice("PSN connection successful!");
-					} catch (e: any) {
+					} catch (e: unknown) {
+						const message = e instanceof Error ? e.message : "Unknown error";
 						new Notice(
-							`PSN connection failed: ${e?.message || "Unknown error"}`
+							`PSN connection failed: ${message}`
 						);
 					} finally {
-						btn.setButtonText("Test Connection");
+						btn.setButtonText("Test connection");
 						btn.setDisabled(false);
 					}
 				})

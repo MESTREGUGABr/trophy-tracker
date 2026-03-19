@@ -40,7 +40,7 @@ export class TrophyTableRenderer {
 		// Add trophy button
 		const toolbar = this.container.createDiv({ cls: "at-trophy-toolbar" });
 		const addBtn = toolbar.createEl("button", {
-			text: "Add Trophy",
+			text: "Add trophy",
 			cls: "at-btn at-btn-primary",
 		});
 		setIcon(addBtn, "plus");

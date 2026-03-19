@@ -21,7 +21,7 @@ export class EditTrophyModal extends Modal {
 
 	onOpen(): void {
 		const { contentEl } = this;
-		contentEl.createEl("h2", { text: "Edit Trophy" });
+		contentEl.createEl("h2", { text: "Edit trophy" });
 
 		new Setting(contentEl).setName("Trophy name").addText((text) =>
 			text.setValue(this.trophyName).onChange((value) => {

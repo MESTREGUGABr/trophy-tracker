@@ -19,13 +19,15 @@ export default class AchievementTrackerPlugin extends Plugin {
 		);
 
 		this.addRibbonIcon("trophy", "Open Achievement Tracker", () => {
-			this.activateView();
+			void this.activateView();
 		});
 
 		this.addCommand({
 			id: "open-achievement-tracker",
-			name: "Open Achievement Tracker",
-			callback: () => this.activateView(),
+			name: "Open tracker",
+			callback: () => {
+				void this.activateView();
+			},
 		});
 
 		this.addCommand({
@@ -42,8 +44,10 @@ export default class AchievementTrackerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "open-achievement-tracker-popout",
-			name: "Open Achievement Tracker in popout window",
-			callback: () => this.activatePopoutView(),
+			name: "Open tracker in popout window",
+			callback: () => {
+				void this.activatePopoutView();
+			},
 		});
 
 		this.addCommand({
@@ -128,9 +132,9 @@ export default class AchievementTrackerPlugin extends Plugin {
 	refreshTrackerView(): void {
 		const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TRACKER);
 		for (const leaf of leaves) {
-			const view = leaf.view as TrackerView;
+			const view = leaf.view as unknown as TrackerView;
 			if (view && typeof view.refresh === "function") {
-				view.refresh();
+				void view.refresh();
 			}
 		}
 	}

@@ -1,10 +1,15 @@
-import { App, TFile, Notice } from "obsidian";
+import { App, TFile } from "obsidian";
 import { AchievementTrackerSettings, GameEntry, GameFrontmatter, GameStatus, Trophy } from "../types";
 import {
 	readGameFrontmatter,
 	updateGameFrontmatter,
 	buildGameNoteContent,
 } from "./frontmatter-parser";
+
+interface FrontmatterData {
+	trophies: { name: string; type: string; completed: boolean; completedDate: string | null }[];
+	status: string;
+}
 
 export class GameService {
 	constructor(
@@ -52,14 +57,15 @@ export class GameService {
 	}
 
 	async deleteGame(file: TFile): Promise<void> {
-		await this.app.vault.trash(file, true);
+		await this.app.fileManager.trashFile(file);
 	}
 
 	async toggleTrophy(file: TFile, trophyName: string): Promise<void> {
 		await updateGameFrontmatter(this.app, file, (fm) => {
-			if (!Array.isArray(fm.trophies)) return;
-			const trophy = fm.trophies.find(
-				(t: any) => t.name === trophyName
+			const data = fm as unknown as FrontmatterData;
+			if (!Array.isArray(data.trophies)) return;
+			const trophy = data.trophies.find(
+				(t) => t.name === trophyName
 			);
 			if (!trophy) return;
 
@@ -68,21 +74,22 @@ export class GameService {
 				? new Date().toISOString().split("T")[0]
 				: null;
 
-			const allCompleted = fm.trophies.every((t: any) => t.completed);
-			if (allCompleted && fm.trophies.length > 0) {
-				fm.status = "completed";
-			} else if (fm.status === "completed") {
-				fm.status = "in-progress";
+			const allCompleted = data.trophies.every((t) => t.completed);
+			if (allCompleted && data.trophies.length > 0) {
+				data.status = "completed";
+			} else if (data.status === "completed") {
+				data.status = "in-progress";
 			}
 		});
 	}
 
 	async addTrophy(file: TFile, trophy: Trophy): Promise<void> {
 		await updateGameFrontmatter(this.app, file, (fm) => {
-			if (!Array.isArray(fm.trophies)) {
-				fm.trophies = [];
+			const data = fm as unknown as FrontmatterData;
+			if (!Array.isArray(data.trophies)) {
+				data.trophies = [];
 			}
-			fm.trophies.push({
+			data.trophies.push({
 				name: trophy.name,
 				type: trophy.type,
 				completed: trophy.completed,
@@ -93,9 +100,10 @@ export class GameService {
 
 	async removeTrophy(file: TFile, trophyName: string): Promise<void> {
 		await updateGameFrontmatter(this.app, file, (fm) => {
-			if (!Array.isArray(fm.trophies)) return;
-			fm.trophies = fm.trophies.filter(
-				(t: any) => t.name !== trophyName
+			const data = fm as unknown as FrontmatterData;
+			if (!Array.isArray(data.trophies)) return;
+			data.trophies = data.trophies.filter(
+				(t) => t.name !== trophyName
 			);
 		});
 	}
@@ -106,12 +114,13 @@ export class GameService {
 		updated: Trophy
 	): Promise<void> {
 		await updateGameFrontmatter(this.app, file, (fm) => {
-			if (!Array.isArray(fm.trophies)) return;
-			const idx = fm.trophies.findIndex(
-				(t: any) => t.name === oldName
+			const data = fm as unknown as FrontmatterData;
+			if (!Array.isArray(data.trophies)) return;
+			const idx = data.trophies.findIndex(
+				(t) => t.name === oldName
 			);
 			if (idx === -1) return;
-			fm.trophies[idx] = {
+			data.trophies[idx] = {
 				name: updated.name,
 				type: updated.type,
 				completed: updated.completed,
@@ -122,7 +131,8 @@ export class GameService {
 
 	async updateGameStatus(file: TFile, status: GameStatus): Promise<void> {
 		await updateGameFrontmatter(this.app, file, (fm) => {
-			fm.status = status;
+			const data = fm as unknown as FrontmatterData;
+			data.status = status;
 		});
 	}
 }

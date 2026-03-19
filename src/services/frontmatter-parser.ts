@@ -1,6 +1,13 @@
 import { App, TFile, parseYaml, stringifyYaml } from "obsidian";
 import { GameFrontmatter, Trophy } from "../types";
 
+interface RawTrophy {
+	name?: string;
+	type?: string;
+	completed?: boolean;
+	completedDate?: string | null;
+}
+
 export async function readGameFrontmatter(
 	app: App,
 	file: TFile
@@ -10,17 +17,17 @@ export async function readGameFrontmatter(
 	if (!match) return null;
 
 	try {
-		const data = parseYaml(match[1]);
+		const data = parseYaml(match[1]) as Record<string, unknown>;
 		if (!data || !data.game || !Array.isArray(data.trophies)) return null;
 
 		return {
-			game: data.game,
-			platform: data.platform || "PS5",
-			status: data.status || "backlog",
-			trophies: (data.trophies as any[]).map(
+			game: data.game as string,
+			platform: (data.platform as string) || "PS5",
+			status: (data.status as GameFrontmatter["status"]) || "backlog",
+			trophies: (data.trophies as RawTrophy[]).map(
 				(t): Trophy => ({
 					name: t.name || "",
-					type: t.type || "bronze",
+					type: (t.type as Trophy["type"]) || "bronze",
 					completed: !!t.completed,
 					completedDate: t.completedDate || null,
 				})
@@ -34,7 +41,7 @@ export async function readGameFrontmatter(
 export async function updateGameFrontmatter(
 	app: App,
 	file: TFile,
-	mutator: (fm: Record<string, any>) => void
+	mutator: (fm: Record<string, unknown>) => void
 ): Promise<void> {
 	await app.fileManager.processFrontMatter(file, mutator);
 }

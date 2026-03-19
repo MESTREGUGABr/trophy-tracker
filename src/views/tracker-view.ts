@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFile, Notice, setIcon } from "obsidian";
+import { ItemView, WorkspaceLeaf, TFile, Modal, Setting, setIcon } from "obsidian";
 import { VIEW_TYPE_TRACKER } from "../constants";
 import { GameEntry, GameStatus, Trophy } from "../types";
 import { GameService } from "../services/game-service";
@@ -10,6 +10,46 @@ import { EditTrophyModal } from "../modals/edit-trophy-modal";
 import { ImportModal } from "../modals/import-modal";
 import { PsnImportModal } from "../modals/psn-import-modal";
 import type AchievementTrackerPlugin from "../main";
+
+class ConfirmDeleteModal extends Modal {
+	private confirmed = false;
+
+	constructor(
+		app: import("obsidian").App,
+		private fileName: string,
+		private onConfirm: () => Promise<void>
+	) {
+		super(app);
+	}
+
+	onOpen(): void {
+		const { contentEl } = this;
+		contentEl.createEl("p", {
+			text: `Delete "${this.fileName}" and all its trophy data?`,
+		});
+
+		new Setting(contentEl)
+			.addButton((btn) =>
+				btn
+					.setButtonText("Delete")
+					.setWarning()
+					.onClick(async () => {
+						this.confirmed = true;
+						await this.onConfirm();
+						this.close();
+					})
+			)
+			.addButton((btn) =>
+				btn.setButtonText("Cancel").onClick(() => {
+					this.close();
+				})
+			);
+	}
+
+	onClose(): void {
+		this.contentEl.empty();
+	}
+}
 
 export class TrackerView extends ItemView {
 	private plugin: AchievementTrackerPlugin;
@@ -39,8 +79,9 @@ export class TrackerView extends ItemView {
 		await this.refresh();
 	}
 
-	async onClose(): Promise<void> {
+	onClose(): Promise<void> {
 		this.contentEl.empty();
+		return Promise.resolve();
 	}
 
 	async refresh(): Promise<void> {
@@ -58,7 +99,7 @@ export class TrackerView extends ItemView {
 		const toolbar = container.createDiv({ cls: "at-toolbar" });
 
 		const addGameBtn = toolbar.createEl("button", {
-			text: "Add Game",
+			text: "Add game",
 			cls: "at-btn at-btn-primary",
 		});
 		setIcon(addGameBtn, "plus");
@@ -75,7 +116,7 @@ export class TrackerView extends ItemView {
 
 		if (this.plugin.settings.psnNpssoToken) {
 			const psnBtn = toolbar.createEl("button", {
-				text: "PSN Import",
+				text: "PSN import",
 				cls: "at-btn",
 			});
 			setIcon(psnBtn, "gamepad-2");
@@ -89,7 +130,7 @@ export class TrackerView extends ItemView {
 		});
 		setIcon(popoutBtn, "external-link");
 		popoutBtn.addEventListener("click", () => {
-			this.plugin.activatePopoutView();
+			void this.plugin.activatePopoutView();
 		});
 
 		// Content area
@@ -101,9 +142,13 @@ export class TrackerView extends ItemView {
 			);
 			if (game) {
 				new TrophyTableRenderer(content, game, {
-					onToggle: (name) => this.handleToggleTrophy(game.file, name),
+					onToggle: (name) => {
+						void this.handleToggleTrophy(game.file, name);
+					},
 					onEdit: (trophy) => this.openEditTrophyModal(game.file, trophy),
-					onDelete: (name) => this.handleDeleteTrophy(game.file, name),
+					onDelete: (name) => {
+						void this.handleDeleteTrophy(game.file, name);
+					},
 					onAdd: () => this.openAddTrophyModal(game.file),
 					onBack: () => {
 						this.expandedGame = null;
@@ -121,9 +166,12 @@ export class TrackerView extends ItemView {
 				this.expandedGame = file;
 				this.render();
 			},
-			onDelete: (file) => this.handleDeleteGame(file),
-			onStatusChange: (file, status) =>
-				this.handleStatusChange(file, status),
+			onDelete: (file) => {
+				void this.handleDeleteGame(file);
+			},
+			onStatusChange: (file, status) => {
+				void this.handleStatusChange(file, status);
+			},
 		}).render();
 	}
 
@@ -179,15 +227,13 @@ export class TrackerView extends ItemView {
 	}
 
 	private async handleDeleteGame(file: TFile): Promise<void> {
-		const confirmed = confirm(
-			`Delete "${file.basename}" and all its trophy data?`
-		);
-		if (!confirmed) return;
-		await this.gameService.deleteGame(file);
-		if (this.expandedGame?.path === file.path) {
-			this.expandedGame = null;
-		}
-		await this.refresh();
+		new ConfirmDeleteModal(this.app, file.basename, async () => {
+			await this.gameService.deleteGame(file);
+			if (this.expandedGame?.path === file.path) {
+				this.expandedGame = null;
+			}
+			await this.refresh();
+		}).open();
 	}
 
 	private async handleStatusChange(

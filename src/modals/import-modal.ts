@@ -27,7 +27,7 @@ export class ImportModal extends Modal {
 	onOpen(): void {
 		const { contentEl } = this;
 		contentEl.addClass("at-import-modal");
-		contentEl.createEl("h2", { text: "Import Trophies" });
+		contentEl.createEl("h2", { text: "Import trophies" });
 
 		new Setting(contentEl).setName("Game name").addText((text) =>
 			text.setPlaceholder("e.g. God of War Ragnarök").onChange((value) => {
@@ -80,7 +80,7 @@ export class ImportModal extends Modal {
 		const buttonRow = contentEl.createDiv({ cls: "at-import-buttons" });
 
 		const parseBtn = buttonRow.createEl("button", {
-			text: "Parse & Preview",
+			text: "Parse & preview",
 			cls: "at-btn",
 		});
 		parseBtn.addEventListener("click", () => {

@@ -37,8 +37,9 @@ export class PsnImportModal extends Modal {
 				this.settings.psnNpssoToken
 			);
 			this.renderGameList();
-		} catch (e: any) {
-			this.renderError(e?.message || "Failed to load games from PSN.");
+		} catch (e: unknown) {
+			const message = e instanceof Error ? e.message : "Failed to load games from PSN.";
+			this.renderError(message);
 		}
 	}
 
@@ -58,7 +59,9 @@ export class PsnImportModal extends Modal {
 			text: "Retry",
 			cls: "at-btn",
 		});
-		retryBtn.addEventListener("click", () => this.loadGames());
+		retryBtn.addEventListener("click", () => {
+			void this.loadGames();
+		});
 	}
 
 	private renderGameList(): void {
@@ -72,18 +75,18 @@ export class PsnImportModal extends Modal {
 		});
 
 		const selectAllBtn = summary.createEl("button", {
-			text: "Select All",
+			text: "Select all",
 			cls: "at-btn",
 		});
 		selectAllBtn.addEventListener("click", () => {
 			if (this.selectedIds.size === this.games.length) {
 				this.selectedIds.clear();
-				selectAllBtn.textContent = "Select All";
+				selectAllBtn.textContent = "Select all";
 			} else {
 				for (const g of this.games) {
 					this.selectedIds.add(g.npCommunicationId);
 				}
-				selectAllBtn.textContent = "Deselect All";
+				selectAllBtn.textContent = "Deselect all";
 			}
 			this.updateCheckboxes();
 			this.updateImportButton();
@@ -105,11 +108,13 @@ export class PsnImportModal extends Modal {
 			cls: "at-psn-import-progress",
 		});
 		this.importBtn = importBar.createEl("button", {
-			text: `Import Selected (0)`,
+			text: "Import selected (0)",
 			cls: "at-btn at-btn-primary",
 		});
 		this.importBtn.disabled = true;
-		this.importBtn.addEventListener("click", () => this.importSelected());
+		this.importBtn.addEventListener("click", () => {
+			void this.importSelected();
+		});
 	}
 
 	private importBtn: HTMLButtonElement | null = null;
@@ -213,7 +218,7 @@ export class PsnImportModal extends Modal {
 	private updateImportButton(): void {
 		if (this.importBtn) {
 			const count = this.selectedIds.size;
-			this.importBtn.textContent = `Import Selected (${count})`;
+			this.importBtn.textContent = `Import selected (${count})`;
 			this.importBtn.disabled = count === 0 || this.isImporting;
 		}
 	}
@@ -261,9 +266,10 @@ export class PsnImportModal extends Modal {
 				if (i < selectedGames.length - 1) {
 					await this.delay(300);
 				}
-			} catch (e: any) {
+			} catch (e: unknown) {
+				const message = e instanceof Error ? e.message : "Unknown error";
 				new Notice(
-					`Failed to import "${game.trophyTitleName}": ${e?.message || "Unknown error"}`
+					`Failed to import "${game.trophyTitleName}": ${message}`
 				);
 			}
 		}

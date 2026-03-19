@@ -250,7 +250,7 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Achievement Tracker Settings" });
+    new import_obsidian2.Setting(containerEl).setName("Achievement tracker settings").setHeading();
     new import_obsidian2.Setting(containerEl).setName("Games folder").setDesc(
       "Folder where game notes are stored. Will be created if it doesn't exist."
     ).addText(
@@ -270,22 +270,24 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
         await this.plugin.saveSettings();
       })
     );
-    containerEl.createEl("h2", { text: "PlayStation Network" });
+    new import_obsidian2.Setting(containerEl).setName("PlayStation Network").setHeading();
     const instructions = containerEl.createDiv({ cls: "at-psn-instructions" });
     instructions.createEl("p", { text: "To import trophies from PSN, you need an NPSSO token:" });
     const ol = instructions.createEl("ol");
     ol.createEl("li", { text: "Sign in at store.playstation.com" });
-    ol.createEl("li").innerHTML = "Visit <code>https://ca.account.sony.com/api/v1/ssocookie</code>";
+    const step2 = ol.createEl("li");
+    step2.appendText("Visit ");
+    step2.createEl("code", { text: "https://ca.account.sony.com/api/v1/ssocookie" });
     ol.createEl("li", { text: 'Copy the "npsso" value from the JSON response' });
     ol.createEl("li", { text: "Paste it in the field below" });
-    new import_obsidian2.Setting(containerEl).setName("NPSSO Token").setDesc("Your PlayStation Network authentication token.").addText(
+    new import_obsidian2.Setting(containerEl).setName("NPSSO token").setDesc("Your PlayStation Network authentication token.").addText(
       (text) => text.setPlaceholder("Paste your NPSSO token here").setValue(this.plugin.settings.psnNpssoToken).onChange(async (value) => {
         this.plugin.settings.psnNpssoToken = value.trim();
         await this.plugin.saveSettings();
       })
     );
     new import_obsidian2.Setting(containerEl).setName("Test connection").setDesc("Verify that your NPSSO token is valid.").addButton(
-      (btn) => btn.setButtonText("Test Connection").onClick(async () => {
+      (btn) => btn.setButtonText("Test connection").onClick(async () => {
         const token = this.plugin.settings.psnNpssoToken;
         if (!token) {
           new import_obsidian2.Notice("Please enter an NPSSO token first.");
@@ -298,11 +300,12 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
           await psnService.testConnection(token);
           new import_obsidian2.Notice("PSN connection successful!");
         } catch (e) {
+          const message = e instanceof Error ? e.message : "Unknown error";
           new import_obsidian2.Notice(
-            `PSN connection failed: ${(e == null ? void 0 : e.message) || "Unknown error"}`
+            `PSN connection failed: ${message}`
           );
         } finally {
-          btn.setButtonText("Test Connection");
+          btn.setButtonText("Test connection");
           btn.setDisabled(false);
         }
       })
@@ -314,7 +317,7 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
 var import_obsidian11 = require("obsidian");
 
 // src/constants.ts
-var VIEW_TYPE_TRACKER = "achievement-tracker-view";
+var VIEW_TYPE_TRACKER = "trophy-tracker-view";
 var TROPHY_ICONS = {
   platinum: "gem",
   gold: "trophy",
@@ -421,31 +424,33 @@ var GameService = class {
     return await this.app.vault.create(path, content);
   }
   async deleteGame(file) {
-    await this.app.vault.trash(file, true);
+    await this.app.fileManager.trashFile(file);
   }
   async toggleTrophy(file, trophyName) {
     await updateGameFrontmatter(this.app, file, (fm) => {
-      if (!Array.isArray(fm.trophies)) return;
-      const trophy = fm.trophies.find(
+      const data = fm;
+      if (!Array.isArray(data.trophies)) return;
+      const trophy = data.trophies.find(
         (t) => t.name === trophyName
       );
       if (!trophy) return;
       trophy.completed = !trophy.completed;
       trophy.completedDate = trophy.completed ? (/* @__PURE__ */ new Date()).toISOString().split("T")[0] : null;
-      const allCompleted = fm.trophies.every((t) => t.completed);
-      if (allCompleted && fm.trophies.length > 0) {
-        fm.status = "completed";
-      } else if (fm.status === "completed") {
-        fm.status = "in-progress";
+      const allCompleted = data.trophies.every((t) => t.completed);
+      if (allCompleted && data.trophies.length > 0) {
+        data.status = "completed";
+      } else if (data.status === "completed") {
+        data.status = "in-progress";
       }
     });
   }
   async addTrophy(file, trophy) {
     await updateGameFrontmatter(this.app, file, (fm) => {
-      if (!Array.isArray(fm.trophies)) {
-        fm.trophies = [];
+      const data = fm;
+      if (!Array.isArray(data.trophies)) {
+        data.trophies = [];
       }
-      fm.trophies.push({
+      data.trophies.push({
         name: trophy.name,
         type: trophy.type,
         completed: trophy.completed,
@@ -455,20 +460,22 @@ var GameService = class {
   }
   async removeTrophy(file, trophyName) {
     await updateGameFrontmatter(this.app, file, (fm) => {
-      if (!Array.isArray(fm.trophies)) return;
-      fm.trophies = fm.trophies.filter(
+      const data = fm;
+      if (!Array.isArray(data.trophies)) return;
+      data.trophies = data.trophies.filter(
         (t) => t.name !== trophyName
       );
     });
   }
   async updateTrophy(file, oldName, updated) {
     await updateGameFrontmatter(this.app, file, (fm) => {
-      if (!Array.isArray(fm.trophies)) return;
-      const idx = fm.trophies.findIndex(
+      const data = fm;
+      if (!Array.isArray(data.trophies)) return;
+      const idx = data.trophies.findIndex(
         (t) => t.name === oldName
       );
       if (idx === -1) return;
-      fm.trophies[idx] = {
+      data.trophies[idx] = {
         name: updated.name,
         type: updated.type,
         completed: updated.completed,
@@ -478,7 +485,8 @@ var GameService = class {
   }
   async updateGameStatus(file, status) {
     await updateGameFrontmatter(this.app, file, (fm) => {
-      fm.status = status;
+      const data = fm;
+      data.status = status;
     });
   }
 };
@@ -589,7 +597,7 @@ var TrophyTableRenderer = class {
     });
     const toolbar = this.container.createDiv({ cls: "at-trophy-toolbar" });
     const addBtn = toolbar.createEl("button", {
-      text: "Add Trophy",
+      text: "Add trophy",
       cls: "at-btn at-btn-primary"
     });
     (0, import_obsidian5.setIcon)(addBtn, "plus");
@@ -681,7 +689,7 @@ var AddGameModal = class extends import_obsidian6.Modal {
   }
   onOpen() {
     const { contentEl } = this;
-    contentEl.createEl("h2", { text: "Add New Game" });
+    contentEl.createEl("h2", { text: "Add new game" });
     new import_obsidian6.Setting(contentEl).setName("Game name").addText(
       (text) => text.setPlaceholder("e.g. God of War Ragnar\xF6k").onChange((value) => {
         this.gameName = value;
@@ -700,14 +708,14 @@ var AddGameModal = class extends import_obsidian6.Modal {
     new import_obsidian6.Setting(contentEl).setName("Status").addDropdown(
       (dropdown) => dropdown.addOptions({
         backlog: "Backlog",
-        "in-progress": "In Progress",
+        "in-progress": "In progress",
         completed: "Completed"
       }).setValue(this.status).onChange((value) => {
         this.status = value;
       })
     );
     new import_obsidian6.Setting(contentEl).addButton(
-      (btn) => btn.setButtonText("Add Game").setCta().onClick(() => {
+      (btn) => btn.setButtonText("Add game").setCta().onClick(() => {
         if (!this.gameName.trim()) {
           return;
         }
@@ -737,7 +745,7 @@ var AddTrophyModal = class extends import_obsidian7.Modal {
   }
   onOpen() {
     const { contentEl } = this;
-    contentEl.createEl("h2", { text: "Add Trophy" });
+    contentEl.createEl("h2", { text: "Add trophy" });
     new import_obsidian7.Setting(contentEl).setName("Trophy name").addText(
       (text) => text.setPlaceholder("e.g. The Promise").onChange((value) => {
         this.trophyName = value;
@@ -754,7 +762,7 @@ var AddTrophyModal = class extends import_obsidian7.Modal {
       })
     );
     new import_obsidian7.Setting(contentEl).addButton(
-      (btn) => btn.setButtonText("Add Trophy").setCta().onClick(() => {
+      (btn) => btn.setButtonText("Add trophy").setCta().onClick(() => {
         if (!this.trophyName.trim()) return;
         this.onSubmit({
           name: this.trophyName.trim(),
@@ -785,7 +793,7 @@ var EditTrophyModal = class extends import_obsidian8.Modal {
   }
   onOpen() {
     const { contentEl } = this;
-    contentEl.createEl("h2", { text: "Edit Trophy" });
+    contentEl.createEl("h2", { text: "Edit trophy" });
     new import_obsidian8.Setting(contentEl).setName("Trophy name").addText(
       (text) => text.setValue(this.trophyName).onChange((value) => {
         this.trophyName = value;
@@ -846,7 +854,7 @@ var ImportModal = class extends import_obsidian9.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.addClass("at-import-modal");
-    contentEl.createEl("h2", { text: "Import Trophies" });
+    contentEl.createEl("h2", { text: "Import trophies" });
     new import_obsidian9.Setting(contentEl).setName("Game name").addText(
       (text) => text.setPlaceholder("e.g. God of War Ragnar\xF6k").onChange((value) => {
         this.gameName = value;
@@ -889,7 +897,7 @@ var ImportModal = class extends import_obsidian9.Modal {
     });
     const buttonRow = contentEl.createDiv({ cls: "at-import-buttons" });
     const parseBtn = buttonRow.createEl("button", {
-      text: "Parse & Preview",
+      text: "Parse & preview",
       cls: "at-btn"
     });
     parseBtn.addEventListener("click", () => {
@@ -1026,7 +1034,8 @@ var PsnImportModal = class extends import_obsidian10.Modal {
       );
       this.renderGameList();
     } catch (e) {
-      this.renderError((e == null ? void 0 : e.message) || "Failed to load games from PSN.");
+      const message = e instanceof Error ? e.message : "Failed to load games from PSN.";
+      this.renderError(message);
     }
   }
   renderLoading() {
@@ -1044,7 +1053,9 @@ var PsnImportModal = class extends import_obsidian10.Modal {
       text: "Retry",
       cls: "at-btn"
     });
-    retryBtn.addEventListener("click", () => this.loadGames());
+    retryBtn.addEventListener("click", () => {
+      void this.loadGames();
+    });
   }
   renderGameList() {
     if (!this.contentArea) return;
@@ -1054,18 +1065,18 @@ var PsnImportModal = class extends import_obsidian10.Modal {
       text: `Found ${this.games.length} games on your PSN profile`
     });
     const selectAllBtn = summary.createEl("button", {
-      text: "Select All",
+      text: "Select all",
       cls: "at-btn"
     });
     selectAllBtn.addEventListener("click", () => {
       if (this.selectedIds.size === this.games.length) {
         this.selectedIds.clear();
-        selectAllBtn.textContent = "Select All";
+        selectAllBtn.textContent = "Select all";
       } else {
         for (const g of this.games) {
           this.selectedIds.add(g.npCommunicationId);
         }
-        selectAllBtn.textContent = "Deselect All";
+        selectAllBtn.textContent = "Deselect all";
       }
       this.updateCheckboxes();
       this.updateImportButton();
@@ -1083,11 +1094,13 @@ var PsnImportModal = class extends import_obsidian10.Modal {
       cls: "at-psn-import-progress"
     });
     this.importBtn = importBar.createEl("button", {
-      text: `Import Selected (0)`,
+      text: "Import selected (0)",
       cls: "at-btn at-btn-primary"
     });
     this.importBtn.disabled = true;
-    this.importBtn.addEventListener("click", () => this.importSelected());
+    this.importBtn.addEventListener("click", () => {
+      void this.importSelected();
+    });
   }
   renderGameRow(container, game) {
     const row = container.createDiv({ cls: "at-psn-game-row" });
@@ -1166,7 +1179,7 @@ var PsnImportModal = class extends import_obsidian10.Modal {
   updateImportButton() {
     if (this.importBtn) {
       const count = this.selectedIds.size;
-      this.importBtn.textContent = `Import Selected (${count})`;
+      this.importBtn.textContent = `Import selected (${count})`;
       this.importBtn.disabled = count === 0 || this.isImporting;
     }
   }
@@ -1206,8 +1219,9 @@ var PsnImportModal = class extends import_obsidian10.Modal {
           await this.delay(300);
         }
       } catch (e) {
+        const message2 = e instanceof Error ? e.message : "Unknown error";
         new import_obsidian10.Notice(
-          `Failed to import "${game.trophyTitleName}": ${(e == null ? void 0 : e.message) || "Unknown error"}`
+          `Failed to import "${game.trophyTitleName}": ${message2}`
         );
       }
     }
@@ -1231,6 +1245,34 @@ var PsnImportModal = class extends import_obsidian10.Modal {
 };
 
 // src/views/tracker-view.ts
+var ConfirmDeleteModal = class extends import_obsidian11.Modal {
+  constructor(app, fileName, onConfirm) {
+    super(app);
+    this.fileName = fileName;
+    this.onConfirm = onConfirm;
+    this.confirmed = false;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.createEl("p", {
+      text: `Delete "${this.fileName}" and all its trophy data?`
+    });
+    new import_obsidian11.Setting(contentEl).addButton(
+      (btn) => btn.setButtonText("Delete").setWarning().onClick(async () => {
+        this.confirmed = true;
+        await this.onConfirm();
+        this.close();
+      })
+    ).addButton(
+      (btn) => btn.setButtonText("Cancel").onClick(() => {
+        this.close();
+      })
+    );
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
 var TrackerView = class extends import_obsidian11.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
@@ -1251,8 +1293,9 @@ var TrackerView = class extends import_obsidian11.ItemView {
   async onOpen() {
     await this.refresh();
   }
-  async onClose() {
+  onClose() {
     this.contentEl.empty();
+    return Promise.resolve();
   }
   async refresh() {
     this.gameService = new GameService(this.plugin.app, this.plugin.settings);
@@ -1265,7 +1308,7 @@ var TrackerView = class extends import_obsidian11.ItemView {
     container.addClass("at-container");
     const toolbar = container.createDiv({ cls: "at-toolbar" });
     const addGameBtn = toolbar.createEl("button", {
-      text: "Add Game",
+      text: "Add game",
       cls: "at-btn at-btn-primary"
     });
     (0, import_obsidian11.setIcon)(addGameBtn, "plus");
@@ -1280,7 +1323,7 @@ var TrackerView = class extends import_obsidian11.ItemView {
     importBtn.addEventListener("click", () => this.openImportModal());
     if (this.plugin.settings.psnNpssoToken) {
       const psnBtn = toolbar.createEl("button", {
-        text: "PSN Import",
+        text: "PSN import",
         cls: "at-btn"
       });
       (0, import_obsidian11.setIcon)(psnBtn, "gamepad-2");
@@ -1293,7 +1336,7 @@ var TrackerView = class extends import_obsidian11.ItemView {
     });
     (0, import_obsidian11.setIcon)(popoutBtn, "external-link");
     popoutBtn.addEventListener("click", () => {
-      this.plugin.activatePopoutView();
+      void this.plugin.activatePopoutView();
     });
     const content = container.createDiv({ cls: "at-content" });
     if (this.expandedGame) {
@@ -1302,9 +1345,13 @@ var TrackerView = class extends import_obsidian11.ItemView {
       );
       if (game) {
         new TrophyTableRenderer(content, game, {
-          onToggle: (name) => this.handleToggleTrophy(game.file, name),
+          onToggle: (name) => {
+            void this.handleToggleTrophy(game.file, name);
+          },
           onEdit: (trophy) => this.openEditTrophyModal(game.file, trophy),
-          onDelete: (name) => this.handleDeleteTrophy(game.file, name),
+          onDelete: (name) => {
+            void this.handleDeleteTrophy(game.file, name);
+          },
           onAdd: () => this.openAddTrophyModal(game.file),
           onBack: () => {
             this.expandedGame = null;
@@ -1320,8 +1367,12 @@ var TrackerView = class extends import_obsidian11.ItemView {
         this.expandedGame = file;
         this.render();
       },
-      onDelete: (file) => this.handleDeleteGame(file),
-      onStatusChange: (file, status) => this.handleStatusChange(file, status)
+      onDelete: (file) => {
+        void this.handleDeleteGame(file);
+      },
+      onStatusChange: (file, status) => {
+        void this.handleStatusChange(file, status);
+      }
     }).render();
   }
   openAddGameModal() {
@@ -1363,16 +1414,14 @@ var TrackerView = class extends import_obsidian11.ItemView {
     await this.refresh();
   }
   async handleDeleteGame(file) {
-    var _a;
-    const confirmed = confirm(
-      `Delete "${file.basename}" and all its trophy data?`
-    );
-    if (!confirmed) return;
-    await this.gameService.deleteGame(file);
-    if (((_a = this.expandedGame) == null ? void 0 : _a.path) === file.path) {
-      this.expandedGame = null;
-    }
-    await this.refresh();
+    new ConfirmDeleteModal(this.app, file.basename, async () => {
+      var _a;
+      await this.gameService.deleteGame(file);
+      if (((_a = this.expandedGame) == null ? void 0 : _a.path) === file.path) {
+        this.expandedGame = null;
+      }
+      await this.refresh();
+    }).open();
   }
   async handleStatusChange(file, status) {
     await this.gameService.updateGameStatus(file, status);
@@ -1393,12 +1442,14 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
       (leaf) => new TrackerView(leaf, this)
     );
     this.addRibbonIcon("trophy", "Open Achievement Tracker", () => {
-      this.activateView();
+      void this.activateView();
     });
     this.addCommand({
       id: "open-achievement-tracker",
-      name: "Open Achievement Tracker",
-      callback: () => this.activateView()
+      name: "Open tracker",
+      callback: () => {
+        void this.activateView();
+      }
     });
     this.addCommand({
       id: "import-trophies",
@@ -1413,8 +1464,10 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
     });
     this.addCommand({
       id: "open-achievement-tracker-popout",
-      name: "Open Achievement Tracker in popout window",
-      callback: () => this.activatePopoutView()
+      name: "Open tracker in popout window",
+      callback: () => {
+        void this.activatePopoutView();
+      }
     });
     this.addCommand({
       id: "import-from-psn",
@@ -1488,7 +1541,7 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
     for (const leaf of leaves) {
       const view = leaf.view;
       if (view && typeof view.refresh === "function") {
-        view.refresh();
+        void view.refresh();
       }
     }
   }
