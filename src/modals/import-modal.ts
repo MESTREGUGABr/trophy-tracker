@@ -18,7 +18,7 @@ export class ImportModal extends Modal {
 	constructor(
 		app: App,
 		private settings: AchievementTrackerSettings,
-		private onSubmit: (data: GameFrontmatter) => void
+		private onSubmit: (data: GameFrontmatter) => void | Promise<void>
 	) {
 		super(app);
 		this.platform = settings.defaultPlatform;
@@ -30,7 +30,7 @@ export class ImportModal extends Modal {
 		contentEl.createEl("h2", { text: "Import trophies" });
 
 		new Setting(contentEl).setName("Game name").addText((text) =>
-			text.setPlaceholder("e.g. God of War Ragnarök").onChange((value) => {
+			text.setPlaceholder("Enter game name").onChange((value) => {
 				this.gameName = value;
 			})
 		);
@@ -54,9 +54,9 @@ export class ImportModal extends Modal {
 			text: "Paste trophies, one per line. Supported formats:",
 		});
 		const list = formatInfo.createEl("ul");
-		list.createEl("li", { text: "Trophy Name, type" });
-		list.createEl("li", { text: "Trophy Name\\ttype (tab-separated)" });
-		list.createEl("li", { text: "Trophy Name (type auto-detected as bronze)" });
+		list.createEl("li", { text: "Trophy name, type" });
+		list.createEl("li", { text: "Trophy name\\ttype (tab-separated)" });
+		list.createEl("li", { text: "Trophy name (type auto-detected as bronze)" });
 		formatInfo.createEl("p", {
 			text: "Types: bronze, silver, gold, platinum",
 			cls: "at-import-hint",
@@ -70,7 +70,7 @@ export class ImportModal extends Modal {
 			attr: {
 				rows: "10",
 				placeholder:
-					"The Promise, gold\nBear Witness\tsilver\nPlatinum Trophy, platinum\nSome Easy Trophy",
+					"First blood, gold\nA new beginning\tsilver\nTrue champion, platinum\nEasy trophy",
 			},
 		});
 		textarea.addEventListener("input", () => {
@@ -104,7 +104,7 @@ export class ImportModal extends Modal {
 				new Notice("No trophies to import. Check your input format.");
 				return;
 			}
-			this.onSubmit({
+			void this.onSubmit({
 				game: this.gameName.trim(),
 				platform: this.platform,
 				status: "backlog",

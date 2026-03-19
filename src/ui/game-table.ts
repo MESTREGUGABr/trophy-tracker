@@ -79,10 +79,14 @@ export class GameTableRenderer {
 		// Status dropdown
 		const statusCell = row.createEl("td");
 		const select = statusCell.createEl("select", { cls: "at-status-select" });
-		const statuses: GameStatus[] = ["backlog", "in-progress", "completed"];
+		const statuses: { value: GameStatus; label: string }[] = [
+			{ value: "backlog", label: "Backlog" },
+			{ value: "in-progress", label: "In progress" },
+			{ value: "completed", label: "Completed" },
+		];
 		for (const s of statuses) {
-			const option = select.createEl("option", { text: s, value: s });
-			if (s === game.frontmatter.status) {
+			const option = select.createEl("option", { text: s.label, value: s.value });
+			if (s.value === game.frontmatter.status) {
 				option.selected = true;
 			}
 		}

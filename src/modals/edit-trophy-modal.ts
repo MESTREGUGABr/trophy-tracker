@@ -10,7 +10,7 @@ export class EditTrophyModal extends Modal {
 	constructor(
 		app: App,
 		private original: Trophy,
-		private onSubmit: (updated: Trophy) => void
+		private onSubmit: (updated: Trophy) => void | Promise<void>
 	) {
 		super(app);
 		this.trophyName = original.name;
@@ -60,7 +60,7 @@ export class EditTrophyModal extends Modal {
 				.setCta()
 				.onClick(() => {
 					if (!this.trophyName.trim()) return;
-					this.onSubmit({
+					void this.onSubmit({
 						name: this.trophyName.trim(),
 						type: this.trophyType,
 						completed: this.completed,

@@ -7,7 +7,7 @@ export class AddTrophyModal extends Modal {
 
 	constructor(
 		app: App,
-		private onSubmit: (trophy: Trophy) => void
+		private onSubmit: (trophy: Trophy) => void | Promise<void>
 	) {
 		super(app);
 	}
@@ -17,7 +17,7 @@ export class AddTrophyModal extends Modal {
 		contentEl.createEl("h2", { text: "Add trophy" });
 
 		new Setting(contentEl).setName("Trophy name").addText((text) =>
-			text.setPlaceholder("e.g. The Promise").onChange((value) => {
+			text.setPlaceholder("Enter trophy name").onChange((value) => {
 				this.trophyName = value;
 			})
 		);
@@ -42,7 +42,7 @@ export class AddTrophyModal extends Modal {
 				.setCta()
 				.onClick(() => {
 					if (!this.trophyName.trim()) return;
-					this.onSubmit({
+					void this.onSubmit({
 						name: this.trophyName.trim(),
 						type: this.trophyType,
 						completed: false,

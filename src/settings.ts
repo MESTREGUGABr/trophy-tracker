@@ -15,7 +15,7 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Achievement tracker settings")
+			.setName("General")
 			.setHeading();
 
 		new Setting(containerEl)
@@ -53,7 +53,7 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 
 		// PSN Section
 		new Setting(containerEl)
-			.setName("PlayStation Network")
+			.setName("PSN")
 			.setHeading();
 
 		const instructions = containerEl.createDiv({ cls: "at-psn-instructions" });
@@ -68,7 +68,7 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("NPSSO token")
-			.setDesc("Your PlayStation Network authentication token.")
+			.setDesc("Your PSN authentication token.")
 			.addText((text) =>
 				text
 					.setPlaceholder("Paste your NPSSO token here")

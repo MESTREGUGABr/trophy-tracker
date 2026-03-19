@@ -68,7 +68,7 @@ export class TrackerView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "Achievement Tracker";
+		return "Achievement tracker";
 	}
 
 	getIcon(): string {
@@ -167,7 +167,7 @@ export class TrackerView extends ItemView {
 				this.render();
 			},
 			onDelete: (file) => {
-				void this.handleDeleteGame(file);
+				this.handleDeleteGame(file);
 			},
 			onStatusChange: (file, status) => {
 				void this.handleStatusChange(file, status);
@@ -226,7 +226,7 @@ export class TrackerView extends ItemView {
 		await this.refresh();
 	}
 
-	private async handleDeleteGame(file: TFile): Promise<void> {
+	private handleDeleteGame(file: TFile): void {
 		new ConfirmDeleteModal(this.app, file.basename, async () => {
 			await this.gameService.deleteGame(file);
 			if (this.expandedGame?.path === file.path) {

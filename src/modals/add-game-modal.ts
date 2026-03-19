@@ -9,7 +9,7 @@ export class AddGameModal extends Modal {
 	constructor(
 		app: App,
 		private settings: AchievementTrackerSettings,
-		private onSubmit: (data: GameFrontmatter) => void
+		private onSubmit: (data: GameFrontmatter) => void | Promise<void>
 	) {
 		super(app);
 		this.platform = settings.defaultPlatform;
@@ -20,7 +20,7 @@ export class AddGameModal extends Modal {
 		contentEl.createEl("h2", { text: "Add new game" });
 
 		new Setting(contentEl).setName("Game name").addText((text) =>
-			text.setPlaceholder("e.g. God of War Ragnarök").onChange((value) => {
+			text.setPlaceholder("Enter game name").onChange((value) => {
 				this.gameName = value;
 			})
 		);
@@ -60,7 +60,7 @@ export class AddGameModal extends Modal {
 					if (!this.gameName.trim()) {
 						return;
 					}
-					this.onSubmit({
+					void this.onSubmit({
 						game: this.gameName.trim(),
 						platform: this.platform,
 						status: this.status,

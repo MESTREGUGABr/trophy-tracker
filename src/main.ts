@@ -18,7 +18,7 @@ export default class AchievementTrackerPlugin extends Plugin {
 			(leaf) => new TrackerView(leaf, this)
 		);
 
-		this.addRibbonIcon("trophy", "Open Achievement Tracker", () => {
+		this.addRibbonIcon("trophy", "Open achievement tracker", () => {
 			void this.activateView();
 		});
 
@@ -52,11 +52,11 @@ export default class AchievementTrackerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "import-from-psn",
-			name: "Import trophies from PlayStation Network",
+			name: "Import trophies from PSN",
 			callback: () => {
 				if (!this.settings.psnNpssoToken) {
 					new Notice(
-						"Please set your PSN NPSSO token in the Achievement Tracker settings first."
+						"Please set your PSN NPSSO token in the plugin settings first."
 					);
 					return;
 				}
