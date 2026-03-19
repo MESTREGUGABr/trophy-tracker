@@ -1,9 +1,9 @@
 {
-  "id": "achievement-tracker",
+  "id": "trophy-tracker",
   "name": "Achievement Tracker",
   "version": "1.1.0",
   "minAppVersion": "0.15.0",
   "description": "Track PlayStation platinum trophies with a dedicated sidebar panel, progress bars, and import support.",
-  "author": "gw-sauter",
+  "author": "gwanderley",
   "isDesktopOnly": true
 }

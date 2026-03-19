@@ -1,4 +1,4 @@
-export const VIEW_TYPE_TRACKER = "achievement-tracker-view";
+export const VIEW_TYPE_TRACKER = "trophy-tracker-view";
 
 export const TROPHY_ICONS: Record<string, string> = {
 	platinum: "gem",
