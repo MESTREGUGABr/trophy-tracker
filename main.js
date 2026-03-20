@@ -271,25 +271,25 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
     );
     new import_obsidian2.Setting(containerEl).setName("PSN").setHeading();
     const instructions = containerEl.createDiv({ cls: "at-psn-instructions" });
-    instructions.createEl("p", { text: "To import trophies from PSN, you need an NPSSO token:" });
+    instructions.createEl("p", { text: "To import trophies, you need an authentication token:" });
     const ol = instructions.createEl("ol");
     ol.createEl("li", { text: "Sign in at store.playstation.com" });
     const step2 = ol.createEl("li");
     step2.appendText("Visit ");
     step2.createEl("code", { text: "https://ca.account.sony.com/api/v1/ssocookie" });
-    ol.createEl("li", { text: "Copy the NPSSO value from the JSON response" });
+    ol.createEl("li", { text: "Copy the token value from the response" });
     ol.createEl("li", { text: "Paste it in the field below" });
-    new import_obsidian2.Setting(containerEl).setName("NPSSO token").setDesc("Your PSN authentication token.").addText(
-      (text) => text.setPlaceholder("Paste your NPSSO token here").setValue(this.plugin.settings.psnNpssoToken).onChange(async (value) => {
+    new import_obsidian2.Setting(containerEl).setName("Authentication token").setDesc("Your authentication token for importing trophies.").addText(
+      (text) => text.setPlaceholder("Paste your token here").setValue(this.plugin.settings.psnNpssoToken).onChange(async (value) => {
         this.plugin.settings.psnNpssoToken = value.trim();
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian2.Setting(containerEl).setName("Test connection").setDesc("Verify that your NPSSO token is valid.").addButton(
+    new import_obsidian2.Setting(containerEl).setName("Test connection").setDesc("Verify that your token is valid.").addButton(
       (btn) => btn.setButtonText("Test connection").onClick(async () => {
         const token = this.plugin.settings.psnNpssoToken;
         if (!token) {
-          new import_obsidian2.Notice("Please enter an NPSSO token first.");
+          new import_obsidian2.Notice("Please enter a token first.");
           return;
         }
         btn.setButtonText("Testing...");
@@ -297,7 +297,7 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
         try {
           const psnService = new PsnService();
           await psnService.testConnection(token);
-          new import_obsidian2.Notice("PSN connection successful!");
+          new import_obsidian2.Notice("Connection successful!");
         } catch (e) {
           const message = e instanceof Error ? e.message : "Unknown error";
           new import_obsidian2.Notice(
@@ -1025,7 +1025,7 @@ var PsnImportModal = class extends import_obsidian10.Modal {
   async onOpen() {
     const { contentEl } = this;
     contentEl.addClass("at-psn-modal");
-    contentEl.createEl("h2", { text: "Import from PSN" });
+    contentEl.createEl("h2", { text: "Import from console" });
     this.contentArea = contentEl.createDiv({ cls: "at-psn-content" });
     await this.loadGames();
   }
@@ -1045,7 +1045,7 @@ var PsnImportModal = class extends import_obsidian10.Modal {
     if (!this.contentArea) return;
     this.contentArea.empty();
     const loading = this.contentArea.createDiv({ cls: "at-psn-loading" });
-    loading.createEl("p", { text: "Loading your PSN library..." });
+    loading.createEl("p", { text: "Loading your game library..." });
   }
   renderError(message) {
     if (!this.contentArea) return;
@@ -1326,7 +1326,7 @@ var TrackerView = class extends import_obsidian11.ItemView {
     importBtn.addEventListener("click", () => this.openImportModal());
     if (this.plugin.settings.psnNpssoToken) {
       const psnBtn = toolbar.createEl("button", {
-        text: "PSN import",
+        text: "Console import",
         cls: "at-btn"
       });
       (0, import_obsidian11.setIcon)(psnBtn, "gamepad-2");
@@ -1474,7 +1474,7 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
     });
     this.addCommand({
       id: "import-from-psn",
-      name: "Import trophies from PSN",
+      name: "Import trophies online",
       callback: () => {
         if (!this.settings.psnNpssoToken) {
           new import_obsidian12.Notice(

@@ -116,7 +116,7 @@ export class TrackerView extends ItemView {
 
 		if (this.plugin.settings.psnNpssoToken) {
 			const psnBtn = toolbar.createEl("button", {
-				text: "PSN import",
+				text: "Console import",
 				cls: "at-btn",
 			});
 			setIcon(psnBtn, "gamepad-2");

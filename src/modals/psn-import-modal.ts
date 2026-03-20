@@ -25,7 +25,7 @@ export class PsnImportModal extends Modal {
 	async onOpen(): Promise<void> {
 		const { contentEl } = this;
 		contentEl.addClass("at-psn-modal");
-		contentEl.createEl("h2", { text: "Import from PSN" });
+		contentEl.createEl("h2", { text: "Import from console" });
 		this.contentArea = contentEl.createDiv({ cls: "at-psn-content" });
 		await this.loadGames();
 	}
@@ -47,7 +47,7 @@ export class PsnImportModal extends Modal {
 		if (!this.contentArea) return;
 		this.contentArea.empty();
 		const loading = this.contentArea.createDiv({ cls: "at-psn-loading" });
-		loading.createEl("p", { text: "Loading your PSN library..." });
+		loading.createEl("p", { text: "Loading your game library..." });
 	}
 
 	private renderError(message: string): void {

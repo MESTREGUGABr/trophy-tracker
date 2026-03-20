@@ -52,7 +52,7 @@ export default class AchievementTrackerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "import-from-psn",
-			name: "Import trophies from PSN",
+			name: "Import trophies online",
 			callback: () => {
 				if (!this.settings.psnNpssoToken) {
 					new Notice(
