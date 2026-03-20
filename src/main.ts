@@ -52,11 +52,12 @@ export default class AchievementTrackerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "import-from-psn",
+			// eslint-disable-next-line obsidianmd/ui/sentence-case
 			name: "Import trophies from PSN",
 			callback: () => {
 				if (!this.settings.psnNpssoToken) {
 					new Notice(
-						"Please set your PSN NPSSO token in the plugin settings first."
+						"Please set your authentication token in the plugin settings first."
 					);
 					return;
 				}
@@ -91,10 +92,11 @@ export default class AchievementTrackerPlugin extends Plugin {
 	}
 
 	async loadSettings(): Promise<void> {
+		const saved = await this.loadData() as AchievementTrackerSettings | null;
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData()
+			saved ?? {}
 		);
 	}
 
@@ -116,7 +118,7 @@ export default class AchievementTrackerPlugin extends Plugin {
 			}
 		}
 		if (leaf) {
-			workspace.revealLeaf(leaf);
+			void workspace.revealLeaf(leaf);
 		}
 	}
 
@@ -126,7 +128,7 @@ export default class AchievementTrackerPlugin extends Plugin {
 			type: VIEW_TYPE_TRACKER,
 			active: true,
 		});
-		this.app.workspace.revealLeaf(leaf);
+		void this.app.workspace.revealLeaf(leaf);
 	}
 
 	refreshTrackerView(): void {

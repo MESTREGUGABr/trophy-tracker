@@ -116,6 +116,7 @@ export class TrackerView extends ItemView {
 
 		if (this.plugin.settings.psnNpssoToken) {
 			const psnBtn = toolbar.createEl("button", {
+				// eslint-disable-next-line obsidianmd/ui/sentence-case
 				text: "PSN import",
 				cls: "at-btn",
 			});

@@ -15,10 +15,6 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("General")
-			.setHeading();
-
-		new Setting(containerEl)
 			.setName("Games folder")
 			.setDesc(
 				"Folder where game notes are stored. Will be created if it doesn't exist."
@@ -57,6 +53,7 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 			.setHeading();
 
 		const instructions = containerEl.createDiv({ cls: "at-psn-instructions" });
+		// eslint-disable-next-line obsidianmd/ui/sentence-case
 		instructions.createEl("p", { text: "To import trophies from PSN, you need an NPSSO token:" });
 		const ol = instructions.createEl("ol");
 		ol.createEl("li", { text: "Sign in at store.playstation.com" });
@@ -67,10 +64,13 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 		ol.createEl("li", { text: "Paste it in the field below" });
 
 		new Setting(containerEl)
+			// eslint-disable-next-line obsidianmd/ui/sentence-case
 			.setName("NPSSO token")
+			// eslint-disable-next-line obsidianmd/ui/sentence-case
 			.setDesc("Your PSN authentication token.")
 			.addText((text) =>
 				text
+					// eslint-disable-next-line obsidianmd/ui/sentence-case
 					.setPlaceholder("Paste your NPSSO token here")
 					.setValue(this.plugin.settings.psnNpssoToken)
 					.onChange(async (value) => {
@@ -81,11 +81,13 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Test connection")
+			// eslint-disable-next-line obsidianmd/ui/sentence-case
 			.setDesc("Verify that your NPSSO token is valid.")
 			.addButton((btn) =>
 				btn.setButtonText("Test connection").onClick(async () => {
 					const token = this.plugin.settings.psnNpssoToken;
 					if (!token) {
+						// eslint-disable-next-line obsidianmd/ui/sentence-case
 						new Notice("Please enter an NPSSO token first.");
 						return;
 					}
@@ -94,11 +96,12 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 					try {
 						const psnService = new PsnService();
 						await psnService.testConnection(token);
+						// eslint-disable-next-line obsidianmd/ui/sentence-case
 						new Notice("PSN connection successful!");
 					} catch (e: unknown) {
 						const message = e instanceof Error ? e.message : "Unknown error";
 						new Notice(
-							`PSN connection failed: ${message}`
+							`Connection failed: ${message}`
 						);
 					} finally {
 						btn.setButtonText("Test connection");

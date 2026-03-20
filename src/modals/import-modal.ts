@@ -70,7 +70,7 @@ export class ImportModal extends Modal {
 			attr: {
 				rows: "10",
 				placeholder:
-					"First blood, gold\nA new beginning\tsilver\nTrue champion, platinum\nEasy trophy",
+					"First blood, gold\na new beginning\tsilver\ntrue champion, platinum\neasy trophy",
 			},
 		});
 		textarea.addEventListener("input", () => {

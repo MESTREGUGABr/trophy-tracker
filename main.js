@@ -250,7 +250,6 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian2.Setting(containerEl).setName("General").setHeading();
     new import_obsidian2.Setting(containerEl).setName("Games folder").setDesc(
       "Folder where game notes are stored. Will be created if it doesn't exist."
     ).addText(
@@ -302,7 +301,7 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
         } catch (e) {
           const message = e instanceof Error ? e.message : "Unknown error";
           new import_obsidian2.Notice(
-            `PSN connection failed: ${message}`
+            `Connection failed: ${message}`
           );
         } finally {
           btn.setButtonText("Test connection");
@@ -893,7 +892,7 @@ var ImportModal = class extends import_obsidian9.Modal {
       cls: "at-import-textarea",
       attr: {
         rows: "10",
-        placeholder: "First blood, gold\nA new beginning	silver\nTrue champion, platinum\nEasy trophy"
+        placeholder: "First blood, gold\na new beginning	silver\ntrue champion, platinum\neasy trophy"
       }
     });
     textarea.addEventListener("input", () => {
@@ -1238,7 +1237,7 @@ var PsnImportModal = class extends import_obsidian10.Modal {
     this.close();
   }
   delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => globalThis.setTimeout(resolve, ms));
   }
   formatPlatform(platform) {
     return platform.replace("PSVITA", "PS Vita");
@@ -1327,6 +1326,7 @@ var TrackerView = class extends import_obsidian11.ItemView {
     importBtn.addEventListener("click", () => this.openImportModal());
     if (this.plugin.settings.psnNpssoToken) {
       const psnBtn = toolbar.createEl("button", {
+        // eslint-disable-next-line obsidianmd/ui/sentence-case
         text: "PSN import",
         cls: "at-btn"
       });
@@ -1475,11 +1475,12 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
     });
     this.addCommand({
       id: "import-from-psn",
+      // eslint-disable-next-line obsidianmd/ui/sentence-case
       name: "Import trophies from PSN",
       callback: () => {
         if (!this.settings.psnNpssoToken) {
           new import_obsidian12.Notice(
-            "Please set your PSN NPSSO token in the plugin settings first."
+            "Please set your authentication token in the plugin settings first."
           );
           return;
         }
@@ -1506,10 +1507,11 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
   onunload() {
   }
   async loadSettings() {
+    const saved = await this.loadData();
     this.settings = Object.assign(
       {},
       DEFAULT_SETTINGS,
-      await this.loadData()
+      saved != null ? saved : {}
     );
   }
   async saveSettings() {
@@ -1529,7 +1531,7 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
       }
     }
     if (leaf) {
-      workspace.revealLeaf(leaf);
+      void workspace.revealLeaf(leaf);
     }
   }
   async activatePopoutView() {
@@ -1538,7 +1540,7 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
       type: VIEW_TYPE_TRACKER,
       active: true
     });
-    this.app.workspace.revealLeaf(leaf);
+    void this.app.workspace.revealLeaf(leaf);
   }
   refreshTrackerView() {
     const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TRACKER);

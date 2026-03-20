@@ -25,7 +25,8 @@ export class PsnImportModal extends Modal {
 	async onOpen(): Promise<void> {
 		const { contentEl } = this;
 		contentEl.addClass("at-psn-modal");
-		contentEl.createEl("h2", { text: "Import from PSN" });
+		// eslint-disable-next-line obsidianmd/ui/sentence-case
+	contentEl.createEl("h2", { text: "Import from PSN" });
 		this.contentArea = contentEl.createDiv({ cls: "at-psn-content" });
 		await this.loadGames();
 	}
@@ -47,7 +48,8 @@ export class PsnImportModal extends Modal {
 		if (!this.contentArea) return;
 		this.contentArea.empty();
 		const loading = this.contentArea.createDiv({ cls: "at-psn-loading" });
-		loading.createEl("p", { text: "Loading your PSN library..." });
+		// eslint-disable-next-line obsidianmd/ui/sentence-case
+	loading.createEl("p", { text: "Loading your PSN library..." });
 	}
 
 	private renderError(message: string): void {
@@ -285,7 +287,7 @@ export class PsnImportModal extends Modal {
 	}
 
 	private delay(ms: number): Promise<void> {
-		return new Promise((resolve) => setTimeout(resolve, ms));
+		return new Promise((resolve) => globalThis.setTimeout(resolve, ms));
 	}
 
 	private formatPlatform(platform: string): string {
