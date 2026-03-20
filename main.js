@@ -277,7 +277,7 @@ var AchievementTrackerSettingTab = class extends import_obsidian2.PluginSettingT
     const step2 = ol.createEl("li");
     step2.appendText("Visit ");
     step2.createEl("code", { text: "https://ca.account.sony.com/api/v1/ssocookie" });
-    ol.createEl("li", { text: 'Copy the "npsso" value from the JSON response' });
+    ol.createEl("li", { text: "Copy the NPSSO value from the JSON response" });
     ol.createEl("li", { text: "Paste it in the field below" });
     new import_obsidian2.Setting(containerEl).setName("NPSSO token").setDesc("Your PSN authentication token.").addText(
       (text) => text.setPlaceholder("Paste your NPSSO token here").setValue(this.plugin.settings.psnNpssoToken).onChange(async (value) => {
@@ -1326,7 +1326,6 @@ var TrackerView = class extends import_obsidian11.ItemView {
     importBtn.addEventListener("click", () => this.openImportModal());
     if (this.plugin.settings.psnNpssoToken) {
       const psnBtn = toolbar.createEl("button", {
-        // eslint-disable-next-line obsidianmd/ui/sentence-case
         text: "PSN import",
         cls: "at-btn"
       });
@@ -1475,7 +1474,6 @@ var AchievementTrackerPlugin = class extends import_obsidian12.Plugin {
     });
     this.addCommand({
       id: "import-from-psn",
-      // eslint-disable-next-line obsidianmd/ui/sentence-case
       name: "Import trophies from PSN",
       callback: () => {
         if (!this.settings.psnNpssoToken) {

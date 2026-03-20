@@ -52,7 +52,6 @@ export default class AchievementTrackerPlugin extends Plugin {
 
 		this.addCommand({
 			id: "import-from-psn",
-			// eslint-disable-next-line obsidianmd/ui/sentence-case
 			name: "Import trophies from PSN",
 			callback: () => {
 				if (!this.settings.psnNpssoToken) {

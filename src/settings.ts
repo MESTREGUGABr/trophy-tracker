@@ -53,24 +53,20 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 			.setHeading();
 
 		const instructions = containerEl.createDiv({ cls: "at-psn-instructions" });
-		// eslint-disable-next-line obsidianmd/ui/sentence-case
 		instructions.createEl("p", { text: "To import trophies from PSN, you need an NPSSO token:" });
 		const ol = instructions.createEl("ol");
 		ol.createEl("li", { text: "Sign in at store.playstation.com" });
 		const step2 = ol.createEl("li");
 		step2.appendText("Visit ");
 		step2.createEl("code", { text: "https://ca.account.sony.com/api/v1/ssocookie" });
-		ol.createEl("li", { text: 'Copy the "npsso" value from the JSON response' });
+		ol.createEl("li", { text: "Copy the NPSSO value from the JSON response" });
 		ol.createEl("li", { text: "Paste it in the field below" });
 
 		new Setting(containerEl)
-			// eslint-disable-next-line obsidianmd/ui/sentence-case
 			.setName("NPSSO token")
-			// eslint-disable-next-line obsidianmd/ui/sentence-case
 			.setDesc("Your PSN authentication token.")
 			.addText((text) =>
 				text
-					// eslint-disable-next-line obsidianmd/ui/sentence-case
 					.setPlaceholder("Paste your NPSSO token here")
 					.setValue(this.plugin.settings.psnNpssoToken)
 					.onChange(async (value) => {
@@ -81,13 +77,11 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Test connection")
-			// eslint-disable-next-line obsidianmd/ui/sentence-case
 			.setDesc("Verify that your NPSSO token is valid.")
 			.addButton((btn) =>
 				btn.setButtonText("Test connection").onClick(async () => {
 					const token = this.plugin.settings.psnNpssoToken;
 					if (!token) {
-						// eslint-disable-next-line obsidianmd/ui/sentence-case
 						new Notice("Please enter an NPSSO token first.");
 						return;
 					}
@@ -96,7 +90,6 @@ export class AchievementTrackerSettingTab extends PluginSettingTab {
 					try {
 						const psnService = new PsnService();
 						await psnService.testConnection(token);
-						// eslint-disable-next-line obsidianmd/ui/sentence-case
 						new Notice("PSN connection successful!");
 					} catch (e: unknown) {
 						const message = e instanceof Error ? e.message : "Unknown error";
